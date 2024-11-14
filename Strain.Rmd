@@ -1,37 +1,10 @@
+# Strain tracking hackaton
 
-## StrainPhlan
+With the previous exemplary commands you have familiarized yourself little bit with bioinformatics part of metagenomics. In the the second session we will try to apply these functions to identify a microbe which has come from the donor and engrafted in a metsyn patient.
 
-We use Strainphlan to identify strains that 
+You will need to trade of speed with sensitivty, what would be your approach?
+Tip; try to reduce your dataset and search space by using fast tools before applying sensitive tools.
 
-```{r}
-mkdir ~/Results/strains
+# 
 
-```
-
-
-
-
-
-```{r, eval=F, class.source='klippy'}
-```
-
-```{r, eval=F, class.source='klippy'}
-```
-
-```{r, eval=F, class.source='klippy'}
-```
-
-```{r, eval=F, class.source='klippy'}
-```
-
-```{r, eval=F, class.source='klippy'}
-```
-
-```{r, eval=F, class.source='klippy'}
-```
-
-```{r, eval=F, class.source='klippy'}
-```
-
-```{r, eval=F, class.source='klippy'}
-```
+I will update this page during the workshop with to help with examples 

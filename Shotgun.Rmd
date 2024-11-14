@@ -89,11 +89,13 @@ The most common task in metagenome shotgun data analysis is to assign function a
 
 ## Pique you interest
 
-Lets retrieve the top 3 sequences in fasta format and align them against the [NCBI](https://blast.ncbi.nlm.nih.gov/Blast.cgi) nt and nr databases using blastn and blastx.
+Lets retrieve the top 3 sequences in fasta format and align them against the [NCBI](https://blast.ncbi.nlm.nih.gov/Blast.cgi) nt and nr databases using **blastn** and **blastx**.
 
 ```{r, eval=F, class.source='klippy'}
 zcat /media/data/rawdata/example.R1.fq.gz | head | awk 'NR%4==2'  | awk '{print ">"NR"\n"$0}'
 ```
+
+Copy the output (sequences+header) from terminal and go to the [NCBI](https://blast.ncbi.nlm.nih.gov/Blast.cgi) blast page. 
 
 **What is the difference between the blastn and blastx results?**
 
@@ -221,16 +223,15 @@ As you can see this is extremely fast however only taxonomy profiles are obtaine
 
 Metaphlan is a tool used to profile metagenomes based on a select set of marker genes. It developed by the segata lab and is part of the biobakery software suit. They provide a wide variety of other specialized [tools](https://huttenhower.sph.harvard.edu/tools/)
 
+Methplan is available in this biobakery conda environment
+
+```{r, eval=F, class.source='klippy'}
+conda activate /media/data/shared_conda_environments/biobakery/
+```
+
 ```{r, eval=F, class.source='klippy'}
 mkdir ~/Results/biobakery/
 metaphlan --input_type fastq --bowtie2db /media/data/database/biobakery/ --nproc 2 --min_ab 0.001 --bowtie2out ~/Results/biobakery/example.metaphlan.bowtie /media/data/rawdata/example.R1.fq.gz ~/Results/biobakery/example.metaphlan
-```
-
-We can again generate a krona plot for the results.
-Which environment do we need?
-
-```{r, eval=F, class.source='klippy'}
-ktImportTaxonomy -t 5 -m 3 -o ~/Results/biobakery/example.metaphlan.html ~/Results/biobakery/example.metaphlan
 ```
 
 ## Humann
@@ -272,6 +273,9 @@ prodigal -i ~/Results/assembly/example/contigs.fasta -p meta -a ~/Results/assemb
 
 ## Bowtie2 alignment
 
+If we want to quantifty the proteins we need to align te reads with the assembled contigs.
+For this we can use bowtie2.
+
 ```{r, eval=F, class.source='klippy'}
 bowtie2-build ~/Results/assembly/example/contigs.fasta ~/Results/assembly/example/contigs.btindex
 bowtie2 -x ~/Results/assembly/example/contigs.btindex \
@@ -281,21 +285,23 @@ bowtie2 -x ~/Results/assembly/example/contigs.btindex \
 --very-sensitive-local | samtools view -bS > ~/Results/assembly/example/example.remap.bam
 ```
 
-## Feature abundance
-
-```{r, eval=F, class.source='klippy'}
-# samtools sort -o ~/Results/assembly/example/example.remap.sorted.bam ~/Results/assembly/example/example.remap.bam
-# featureCounts -O -t CDS -g ID -a ~/Results/assembly/example/ -o ~/Results/assembly/example/example.featurecount ~/Results/assembly/example/example.remap.sorted.bam -p
-```
-
 ## Function prediction
 
 A powerfull tool for protein annotation is [introscan](https://github.com/ebi-pf-team/interproscan). However, protein annotation, or function prediction is a computationally intensive task. Even for a small dataset as this it will take a few hours to fully annotate the protein set.
 
 Rather than annotation of the entire set we will identify proteins with a specific function.
-Various microbes regulate there energy metabolism through carbon control protein A (CCPA). Mutation in this gene result in specific alterations of the fermentation profiles. Thus identificantion of these mutans in metagenome give 
+Personally im interested in dynamic metabolism of microbes. Various microbes regulate there energy metabolism through carbon control protein A (CCPA). Mutation in this gene result in specific alterations of the fermentation profiles. Thus identificantion of these mutans in metagenome might give better insight into the actual fermentation activities besides general abundance.
+
+Lets identify all potential CCPA proteins from the metagenome.
 
 ```{r, eval=F, class.source='klippy'}
 hmmsearch --tblout ~/Results/assembly/example.PF14566 -E 0.00001 /media/data/TIGR01481.hmm ~/Results/assembly/example.proteins.fasta
 ```
 
+# Summary
+
+With the previous exemplary commands you have familiarized yourself little bit with bioinformatics part of metagenomics.
+In the the second session we will try to apply these functions to identify a microbe which has come from the donor and engrafted in a metsyn patient.
+
+You will need to trade of speed with sensitivty, what would be your approach?
+Tip; try to reduce your dataset and search space by using fast tools before applying sensitive tools.
