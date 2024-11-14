@@ -1,0 +1,301 @@
+---
+title: "Third day Shotgun Metagenomics"
+author: "Mark davids"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# setting global options for the rmd markdown
+knitr::opts_chunk$set(echo = T) # include chunck code in html
+knitr::opts_chunk$set(cache = F) # use chuck results from cache if not modified (speed)
+knitr::opts_chunk$set(warning = F) # ignore warnings in html
+knitr::opts_chunk$set(message = F) # ignore messages in html
+knitr::opts_chunk$set(fig.width = 18) # Figure width
+```
+
+```{r, echo=FALSE, include=T, eval=T}
+library(klippy)
+klippy::klippy('',position = c('top', 'right'))
+```
+
+# Introduction
+
+Metagenomics, the study of genetic material from environmental samples, provides insights into the composition and functional potential of microbial communities in various environments. Analyzing these large and complex datasets requires specialized bioinformatics tools, often running on the Linux operating system through a command-line (terminal) interface. This workshop is designed to introduce you to essential tools and strategies for setting up environments and running standard software for bioinformatics analysis.
+
+Metagenomic analyses generally require substantial computational resources due to the size and complexity of the data. For the purposes of this workshop, we will work with a small sample dataset and reduced reference databases. This approach allows us to learn the workflows without needing access to high-performance computing resources.
+
+The workshop will cover:
+
+* **Familiarizing with the Command-Line Interface (CLI) and Unix Environment**: Understanding how to navigate and manage files and directories in a Linux environment using the command line.
+* **Setting Up Environments to Manage Dependencies with Conda**: Learning how to use Conda to create isolated environments, enabling you to install specific versions of software and dependencies for different bioinformatics tools.
+* **Running Basic Commands for Bioinformatics Software**: Practicing the use of bioinformatics software to prepare you for more complex analyses.
+* **Reference-Based Metagenome Analysis**: Aligning metagenomic reads against reference databases to identify microbial species and functional genes in the sample.
+* **Assembly-Based Metagenome Analysis**: Assembling reads into larger contigs to reconstruct genomes, allowing for the discovery of new microbial species and gene functions.
+* **Other Applications of Metagenome Analysis**, including:
+  - **Strain Tracking**: Monitoring microbial strains in environments or hosts over time, useful for studying changes in microbial populations.
+  - **Peak-to-Trough Ratio (PTR) / Growth Rate Index Analysis**: Estimating microbial growth rates by analyzing sequencing depth at different regions of microbial genomes.
+
+The second session will provide a hands-on introduction to tools that perform reference-based metagenome analysis, offering an opportunity to apply and deepen the skills acquired in the first part of the workshop.
+
+By the end of the workshop, you will be equipped with fundamental skills to begin analyzing metagenomic data, setting up bioinformatics environments, and running key tools used in the field. Let's begin with the essentials of the command line and setting up Conda environments.
+
+# Basic command line interactions
+
+## Command line interface 
+
+```{r, eval=F}
+# List all files in the current directory
+ls
+
+# Change directory
+cd /path/to/directory
+
+# Print working directory
+pwd
+
+# Create a new directory
+mkdir my_folder
+
+# Remove a file or directory (use with caution)
+rm file_name
+
+# list the contents of a file
+cat file_name
+less file_name
+```
+
+Well create a folder in which we will store our results.
+
+```{r, eval=F, class.source='klippy'}
+mkdir ~/Results
+```
+
+## Raw data
+
+Raw data, conda environments and databases are stored @
+/media/data/
+
+Some of the analysis, like assembly are really resource intensive and take a significant amount of time. Therefore we will use a small subset of reads from one of the MPS samples as an example set.
+
+The data itself is stored in a compressed (gz) fastq file.
+To view the first view lines of the data we can run zcat:
+
+```{r, eval=F, class.source='klippy'}
+zcat /media/data/rawdata/example.R1.fq.gz | head
+```
+
+The most common task in metagenome shotgun data analysis is to assign function and taxonomy to these sequences
+
+## Pique you interest
+
+Lets retrieve the top 3 sequences in fasta format and align them against the [NCBI](https://blast.ncbi.nlm.nih.gov/Blast.cgi) nt and nr databases using blastn and blastx.
+
+```{r, eval=F, class.source='klippy'}
+zcat /media/data/rawdata/example.R1.fq.gz | head | awk 'NR%4==2'  | awk '{print ">"NR"\n"$0}'
+```
+
+**What is the difference between the blastn and blastx results?**
+
+Of course this is not suitable for large scale data analysis and we need to resort to dedicated tools. How to install these tools and use them we will cover in the remainder of this workshop.
+
+# Conda environments
+
+Bioinformatic tools usually have a lot of system dependencies, and unfortunately these can be conflicting for different tools. Conda allows to create subsystem environments in which different dependencies can be installed in isolation (similar to docker environments).
+
+More information on coda environments can be found [here](https://github.com/conda-forge/miniforge)
+
+To install conda copy paste the following code into your terminal and run it.
+
+```{r, eval=F, class.source='klippy'}
+curl -L -O "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+bash Miniforge3-$(uname)-$(uname -m).sh
+```
+
+Remove the installer en restart the shell
+
+```{r, eval=F, class.source='klippy'}
+rm Miniforge3-$(uname)-$(uname -m).sh
+source ~/.bashrc
+```
+
+Note: Miniforge is a lightweight installer for Conda that is especially useful for data science and bioinformatics tasks.
+
+Once conda is installed we can create an environment.
+
+# Data Quality
+
+## Fastqc
+
+Lets start with installing fastqc in a conda environment
+
+```{r, eval=F, class.source='klippy'}
+mamba create --name fastqc bioconda::fastqc
+mamba activate fastqc
+```
+
+Note, after activation the active conda environment is show in the prompt of the terminal.
+
+Most commands have information on how to use them which you can read using the man command
+
+```{r, eval=F, class.source='klippy'}
+man fastqc
+```
+
+We can generate a quality assessment report for the raw data:
+
+```{r, eval=F, class.source='klippy'}
+mkdir ~/Results/
+mkdir ~/Results/fastqc
+fastqc /media/data/rawdata/example.R1.fq.gz /media/data/rawdata/example.R2.fq.gz -o ~/Results/fastqc/
+```
+
+conda environments can simply be deactivate:
+
+```{r, eval=F, class.source='klippy'}
+mamba deactivate
+```
+
+You can view the html through the files panel in your Rstudio server session.
+
+## Fastp
+
+While the overall data quality is really good we can see some of the reads contain adapter sequences. These are artificial sequences which negatively impact read classification and assembly. These can easily be removed using tools like fastp.
+
+We pre-installed some basic tools like fastp in a shared conda enviroment. You can activate this environment with the following command
+
+```{r, eval=F, class.source='klippy'}
+mamba activate /media/data/shared_conda_environments/SHIBIS_base/
+```
+
+Trim the adapter sequences and remove low quality reads
+
+```{r, eval=F, class.source='klippy'}
+mkdir ~/Results/trimmed_reads/
+  
+fastp --in1 /media/data/rawdata/example.R1.fq.gz \
+--in2 /media/data/rawdata/example.R1.fq.gz \
+--out1 ~/Results/trimmed_reads/example.trimmed.R1.fq.gz \
+--out2 ~/Results/trimmed_reads/example.trimmed.R2.fq.gz \
+--json ~/Results/trimmed_reads/example.fastp.json \
+--html ~/Results/trimmed_reads/example.fastp.html
+```
+
+# Reference based profiling
+
+## Kraken2
+
+The first metagenomics dedicated tool that we will use is  [kraken](https://github.com/DerrickWood/kraken2).
+As a default kraken uses NCBI taxonomy databases for labeling taxonomy.
+A (small) database has been pre-loaded in the memory for extreme fast analysis of the sample.
+
+```{r, eval=F, class.source='klippy'}
+mamba activate /media/data/shared_conda_environments/kraken2/
+```
+
+```{r, eval=F, class.source='klippy'}
+mkdir ~/Results/kraken2/
+
+kraken2 --db /dev/shm/kraken/ \
+--memory-mapping \
+--threads 12 \
+--classified-out ~/Results/kraken2/example.classified.#.fq \
+--unclassified-out ~/Results/kraken2/example.unclassified.#.fq \
+--paired ~/Results/trimmed_reads/example.trimmed.R1.fq.gz ~/Results/trimmed_reads/example.trimmed.R2.fq.gz \
+--report ~/Results/kraken2/example.report \
+--confidence 0.01 \
+--use-names > ~/Results/kraken2/example.read.results
+```
+
+We can view the general profile using krona.
+
+```{r, eval=F, class.source='klippy'}
+ktImportTaxonomy -t 5 -m 3 -o ~/Results/kraken2/example.krona.html ~/Results/kraken2/example.report
+```
+
+As you can see this is extremely fast however only taxonomy profiles are obtained.
+
+**Reflecting on the output of these results**
+
+## Metaphlan
+
+Metaphlan is a tool used to profile metagenomes based on a select set of marker genes. It developed by the segata lab and is part of the biobakery software suit. They provide a wide variety of other specialized [tools](https://huttenhower.sph.harvard.edu/tools/)
+
+```{r, eval=F, class.source='klippy'}
+mkdir ~/Results/biobakery/
+metaphlan --input_type fastq --bowtie2db /media/data/database/biobakery/ --nproc 2 --min_ab 0.001 --bowtie2out ~/Results/biobakery/example.metaphlan.bowtie /media/data/rawdata/example.R1.fq.gz ~/Results/biobakery/example.metaphlan
+```
+
+We can again generate a krona plot for the results.
+Which environment do we need?
+
+```{r, eval=F, class.source='klippy'}
+ktImportTaxonomy -t 5 -m 3 -o ~/Results/biobakery/example.metaphlan.html ~/Results/biobakery/example.metaphlan
+```
+
+## Humann
+
+The [humann](https://github.com/biobakery/humann) pipeline was developed to get functional profiles, and relies on the metaphlan functional profile. 
+
+```{r, eval=F, class.source='klippy'}
+humann -i /media/data/rawdata/example.R1.fq.gz --taxonomic-profile ~/Results/biobakery/example.metaphlan -o ~/Results/biobakery/example.humann
+```
+
+# Assembly based approaches
+
+```{r, eval=F, class.source='klippy'}
+mamba activate /media/data/shared_conda_environments/assembly
+```
+
+## Spades
+
+To assemble the short reads into larger contigous (contigs) sequences we use the metaspades assembler, which has specific parameter settings optimal for metagenome assembly. Note, even though this is a small dataset this may take a few minutes. 
+
+```{r, eval=F, class.source='klippy'}
+metaspades.py --meta -1 ~/Results/trimmed_reads/example.trimmed.R1.fq.gz -2 ~/Results/trimmed_reads/example.trimmed.R2.fq.gz -o ~/Results/assembly/example -t 2 --only-assembler
+```
+
+You can view statistics of the assembly using seqkit.
+**What do you observe?**
+
+```{r, eval=F, class.source='klippy'}
+seqkit stats ~/Results/assembly/example/contigs.fasta -a
+```
+
+Since assembly needs a significant amount of coverage this assembly is really poor even though we used 1M reads as input.
+
+## Prodigal
+
+```{r, eval=F, class.source='klippy'}
+prodigal -i ~/Results/assembly/example/contigs.fasta -p meta -a ~/Results/assembly/example.proteins.fasta -o ~/Results/assembly/example.prodigal.log -f gff -q
+```
+
+## Bowtie2 alignment
+
+```{r, eval=F, class.source='klippy'}
+bowtie2-build ~/Results/assembly/example/contigs.fasta ~/Results/assembly/example/contigs.btindex
+bowtie2 -x ~/Results/assembly/example/contigs.btindex \
+-1 ~/Results/trimmed_reads/example.trimmed.R1.fq.gz \
+-2 ~/Results/trimmed_reads/example.trimmed.R2.fq.gz \
+--threads 2 \
+--very-sensitive-local | samtools view -bS > ~/Results/assembly/example/example.remap.bam
+```
+
+## Feature abundance
+
+```{r, eval=F, class.source='klippy'}
+# samtools sort -o ~/Results/assembly/example/example.remap.sorted.bam ~/Results/assembly/example/example.remap.bam
+# featureCounts -O -t CDS -g ID -a ~/Results/assembly/example/ -o ~/Results/assembly/example/example.featurecount ~/Results/assembly/example/example.remap.sorted.bam -p
+```
+
+## Function prediction
+
+A powerfull tool for protein annotation is [introscan](https://github.com/ebi-pf-team/interproscan). However, protein annotation, or function prediction is a computationally intensive task. Even for a small dataset as this it will take a few hours to fully annotate the protein set.
+
+Rather than annotation of the entire set we will identify proteins with a specific function.
+Various microbes regulate there energy metabolism through carbon control protein A (CCPA). Mutation in this gene result in specific alterations of the fermentation profiles. Thus identificantion of these mutans in metagenome give 
+
+```{r, eval=F, class.source='klippy'}
+hmmsearch --tblout ~/Results/assembly/example.PF14566 -E 0.00001 /media/data/TIGR01481.hmm ~/Results/assembly/example.proteins.fasta
+```
+

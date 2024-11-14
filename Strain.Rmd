@@ -1,0 +1,37 @@
+
+## StrainPhlan
+
+We use Strainphlan to identify strains that 
+
+```{r}
+mkdir ~/Results/strains
+
+```
+
+
+
+
+
+```{r, eval=F, class.source='klippy'}
+```
+
+```{r, eval=F, class.source='klippy'}
+```
+
+```{r, eval=F, class.source='klippy'}
+```
+
+```{r, eval=F, class.source='klippy'}
+```
+
+```{r, eval=F, class.source='klippy'}
+```
+
+```{r, eval=F, class.source='klippy'}
+```
+
+```{r, eval=F, class.source='klippy'}
+```
+
+```{r, eval=F, class.source='klippy'}
+```
