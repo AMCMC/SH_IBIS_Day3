@@ -7,4 +7,9 @@ Tip; try to reduce your dataset and search space by using fast tools before appl
 
 # 
 
-I will update this page during the workshop with to help with examples 
+I will update this page during the hackaton with to help with examples 
+
+Fastq files can be found here:
+
+/media/data/rawdata/fastqfiles/
+

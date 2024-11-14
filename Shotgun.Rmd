@@ -267,6 +267,8 @@ Since assembly needs a significant amount of coverage this assembly is really po
 
 ## Prodigal
 
+Protein calling (ORF)
+
 ```{r, eval=F, class.source='klippy'}
 prodigal -i ~/Results/assembly/example/contigs.fasta -p meta -a ~/Results/assembly/example.proteins.fasta -o ~/Results/assembly/example.prodigal.log -f gff -q
 ```
