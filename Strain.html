@@ -382,6 +382,15 @@ kraken2 --db /dev/shm/kraken/ \
 --report ~/Results/kraken2/example.report \
 --confidence 0.01 \
 --use-names &gt; ~/Results/kraken2/example.read.results</code></pre>
+<p>Knowing this data was from the published FMT set, Prevotella,
+Collinsella etc are likely candidates. With this knowledge you could
+have started strainphlan out of the gates.</p>
+<pre class="r klippy"><code>mkdir -p sams
+mkdir -p bowtie2
+mkdir -p profiles
+for f in /media/data/rawdata/fastqfiles/*R1* ; do     echo &quot;Running MetaPhlAn on ${f}&quot;;     bn=$(basename ${f});     metaphlan ${f} --input_type fastq -s sams/${bn}.sam.bz2 --bowtie2out bowtie2/${bn}.bowtie2.bz2 -o profiles/${bn}_profiled.tsv --bowtie2db /media/data/database/biobakery/; done</code></pre>
+<p>SGB table:</p>
+<p><a href="https://opendata.lifebit.ai/table/SGB" class="uri">https://opendata.lifebit.ai/table/SGB</a></p>
 </div>
 
 
