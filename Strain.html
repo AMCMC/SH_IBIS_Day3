@@ -366,8 +366,22 @@ tools before applying sensitive tools.</p>
 <h1></h1>
 <p>I will update this page during the hackaton with to help with
 examples</p>
-<p>Fastq files can be found here:</p>
-<p>/media/data/rawdata/fastqfiles/</p>
+<p>Fastq files can be found here: /media/data/rawdata/fastqfiles/</p>
+<p>Background information <a href="https://github.com/biobakery/MetaPhlAn/wiki/StrainPhlAn-4.1" class="uri">https://github.com/biobakery/MetaPhlAn/wiki/StrainPhlAn-4.1</a></p>
+<p>My first approach would be to identify likely engrating strains:</p>
+<pre class="r klippy"><code>mamba activate /media/data/shared_conda_environments/kraken2/</code></pre>
+<p>replace samples and output with correct files</p>
+<pre class="r klippy"><code>mkdir ~/Results/kraken2/
+
+kraken2 --db /dev/shm/kraken/ \
+--memory-mapping \
+--threads 12 \
+--classified-out ~/Results/kraken2/example.classified.#.fq \
+--unclassified-out ~/Results/kraken2/example.unclassified.#.fq \
+--paired ~/Results/trimmed_reads/example.trimmed.R1.fq.gz ~/Results/trimmed_reads/example.trimmed.R2.fq.gz \
+--report ~/Results/kraken2/example.report \
+--confidence 0.01 \
+--use-names &gt; ~/Results/kraken2/example.read.results</code></pre>
 </div>
 
 

@@ -10,6 +10,30 @@ Tip; try to reduce your dataset and search space by using fast tools before appl
 I will update this page during the hackaton with to help with examples 
 
 Fastq files can be found here:
-
 /media/data/rawdata/fastqfiles/
 
+
+Background information 
+https://github.com/biobakery/MetaPhlAn/wiki/StrainPhlAn-4.1
+
+My first approach would be to identify likely engrating strains:
+
+```{r, eval=F, class.source='klippy'}
+mamba activate /media/data/shared_conda_environments/kraken2/
+```
+
+replace samples and output  with correct files
+
+```{r, eval=F, class.source='klippy'}
+mkdir ~/Results/kraken2/
+
+kraken2 --db /dev/shm/kraken/ \
+--memory-mapping \
+--threads 12 \
+--classified-out ~/Results/kraken2/example.classified.#.fq \
+--unclassified-out ~/Results/kraken2/example.unclassified.#.fq \
+--paired ~/Results/trimmed_reads/example.trimmed.R1.fq.gz ~/Results/trimmed_reads/example.trimmed.R2.fq.gz \
+--report ~/Results/kraken2/example.report \
+--confidence 0.01 \
+--use-names > ~/Results/kraken2/example.read.results
+```
